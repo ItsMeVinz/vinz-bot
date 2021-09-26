@@ -11,6 +11,7 @@ const { color, bgcolor } = require('./lib/color')
 const { wait, simih, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close } = require('./lib/functions')
 const { fetchJson, fetchText } = require('./lib/fetcher')
 const { yta, ytv, igdl, upload, formatDate } = require('./lib/ytdl')
+const { mediafireDl } = require('./lib/mediafire')
 const fs = require('fs')
 const crypto = require('crypto')
 const moment = require('moment-timezone')
@@ -21,6 +22,7 @@ const ffmpeg = require('fluent-ffmpeg')
 const yts = require('yt-search')
 const request = require('request')
 const brainly = require('brainly-scraper')
+const speed = require('performance-now')
 const { removeBackgroundFromImageFile } = require('remove.bg')
 
 
@@ -31,22 +33,24 @@ ngetik = false
 prefa = '-'
 pixz = fs.readFileSync('./src/vinz.jpg')
 blocked = []
+hit_today = []
 
 let _scommand = JSON.parse(fs.readFileSync('./src/database/scommand.json'))
 let _registered = JSON.parse(fs.readFileSync('./src/database/register.json'))
 
-const col = ['red','white','black','blue','yellow','green']
+const col = ['red','cyan','blue','yellow','green']
 const warna = col[Math.floor(Math.random() * (col.length))]
-function kyun(seconds){
-function pad(s){
-return (s < 10 ? '0' : '') + s;
-}
-var hours = Math.floor(seconds / (60*60));
-var minutes = Math.floor(seconds % (60*60) / 60);
-var seconds = Math.floor(seconds % 60);
-
-//return pad(hours) + ':' + pad(minutes) + ':' + pad(seconds)
-return `${pad(hours)} Jam ${pad(minutes)} Menit ${pad(seconds)} Detik`
+const runtime = function(seconds) {
+seconds = Number(seconds);
+var d = Math.floor(seconds / (3600 * 24));
+var h = Math.floor(seconds % (3600 * 24) / 3600);
+var m = Math.floor(seconds % 3600 / 60);
+var s = Math.floor(seconds % 60);
+var dDisplay = d > 0 ? d + (d == 1 ? ' day, ' : ' days, ') : '';
+var hDisplay = h > 0 ? h + (h == 1 ? ' hour, ' : ' hours, ') : '';
+var mDisplay = m > 0 ? m + (m == 1 ? ' minute, ' : ' minutes, ') : '';
+var sDisplay = s > 0 ? s + (s == 1 ? ' second' : ' seconds') : '';
+return dDisplay + hDisplay + mDisplay + sDisplay;
 }
 
 async function starts() {
@@ -125,6 +129,7 @@ blocked.push(i.replace('c.us','s.whatsapp.net'))
 }
 })
 
+
 client.on('chat-update', async (mek) => {
 try {
 if (!mek.hasNewMessage) return
@@ -158,6 +163,7 @@ body= (type === 'conversation' && mek.message.conversation.startsWith(prefix)) ?
 budy = (type === 'conversation') ? mek.message.conversation : (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text : ''
 const command = body.replace(prefix, '').trim().split(/ +/).shift().toLowerCase()
 const commando = body.slice(1).trim().split(/ +/).shift().toLowerCase()
+hit_today.push(command)
 const args = body.trim().split(/ +/).slice(1)
 const isCmd = body.startsWith(prefix)
 const q = args.join(' ')
@@ -213,23 +219,8 @@ var ucapanWaktu = 'Selamat Pagi'
 if (time2 < '05:00:00'){
 var ucapanWaktu = 'Selamat Malam'
 }
-
-const ftrol = {
-key : {
-participant : '0@s.whatsapp.net'
-},
-message: {
-orderMessage: {
-itemCount : 123,
-status: 1,
-surface : 1,
-message: `${ucapanWaktu} ${pushname}`,
-orderTitle: `${ucapanWaktu} ${pushname}`,
-thumbnail: pixz,
-sellerJid: '0@s.whatsapp.net' 
-}
-}
-}
+const faketroli = { key: { fromMe: false, participant: `0@s.whatsapp.net`, ...(from ? { remoteJid: 'status@broadcast' } : {})}, message: { orderMessage: { itemCount: 1, status: 200, surface: 200, message: `${ucapanWaktu}\n${pushname}`, orderTitle: 'VINZ', sellerJid: '0@s.whatsapp.net'}}}
+const ftext = {key: { fromMe: false,participant: `0@s.whatsapp.net`, ...(from ? { remoteJid: "16505434800@s.whatsapp.net" } : {})},message: { "extendedTextMessage": {"text": `${ucapanWaktu}\n${pushname}\nRUNTIME : ${runtime(process.uptime())}`,"title": `Hmm`,'jpegThumbnail': fs.readFileSync('./src/vinz.jpg')}}}
 
 const isUrl = (url) => {
 return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/, 'gi'))
@@ -241,7 +232,7 @@ const mentions = (teks, memberr, id) => {
 (id == null || id == undefined || id == false) ? client.sendMessage(from, teks.trim(), extendedText, {contextInfo: {'mentionedJid': memberr}}) : client.sendMessage(from, teks.trim(), extendedText, {quoted: mek, contextInfo: {'mentionedJid': memberr}})
 }
 const reply = (teks) => {
-client.sendMessage(from, teks, text,{ contextInfo :{text: 'hi','forwardingScore': 1000000000,isForwarded: false,sendEphemeral: false,'externalAdReply': {'title': `VINZBOT`,'body': '','previewType': 'PHOTO','thumbnailUrl': 'https://i.ibb.co/kX75hbc/vinz.jpg','thumbnail': pixz,'sourceUrl': ``}, mentionedJid:[sender]}, quoted : ftrol})
+client.sendMessage(from, teks, text,{ contextInfo :{text: 'hi','forwardingScore': 1000000000,isForwarded: false,sendEphemeral: false,'externalAdReply': {'title': `VINZBOT`,'body': '','previewType': 'PHOTO','thumbnailUrl': 'https://i.ibb.co/kX75hbc/vinz.jpg','thumbnail': pixz,'sourceUrl': ``}, mentionedJid:[sender]}, quoted : ftext})
 }
 const sendButMessage = (id, text1, desc1, but = [], options = {}) => {const buttonMessage = {contentText: text1,footerText: desc1,buttons: but,headerType: 1
 }
@@ -275,16 +266,16 @@ message: {
 })
 }
 const katalog = (teks) => {
-res = client.prepareMessageFromContent(from,{ 'orderMessage': { 'itemCount': 321, 'message': teks, 'footerText': 'PIXZBOT', 'thumbnail': pixz, 'surface': 'CATALOG' }}, {quoted:ftrol})
+res = client.prepareMessageFromContent(from,{ 'orderMessage': { 'itemCount': 321, 'message': teks, 'footerText': 'PIXZBOT', 'thumbnail': pixz, 'surface': 'CATALOG' }}, {quoted:ftext})
 client.relayWAMessage(res)
 }
-const sendMediaURL = async(to, url, text="", mids=[]) =>{
+const sendMediaURL = async(to, url, text='', mids=[]) =>{
 if(mids.length > 0){
 text = normalizeMention(to, text, mids)
 }
 const fn = Date.now() / 10000;
 const filename = fn.toString()
-let mime = ""
+let mime = ''
 var download = function (uri, filename, callback) {
 request.head(uri, function (err, res, body) {
 mime = res.headers['content-type']
@@ -294,15 +285,15 @@ request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
 download(url, filename, async function () {
 console.log('done');
 let media = fs.readFileSync(filename)
-let type = mime.split("/")[0]+"Message"
-if(mime === "image/gif"){
+let type = mime.split('/')[0]+'Message'
+if(mime === 'image/gif'){
 type = MessageType.video
 mime = Mimetype.gif
 }
-if(mime.split("/")[0] === "audio"){
+if(mime.split('/')[0] === 'audio'){
 mime = Mimetype.mp4Audio
 }
-client.sendMessage(to, media, type, { quoted: ftrol, mimetype: mime, caption: text,contextInfo: {"mentionedJid": mids}})
+client.sendMessage(to, media, type, { quoted: ftext, mimetype: mime, caption: text,contextInfo: {'mentionedJid': mids}})
 
 fs.unlinkSync(filename)
 });
@@ -329,7 +320,19 @@ console.log(e)
 })
 })
 }
-
+function clockString(ms) {
+let h = isNaN(ms) ? '--' : Math.floor(ms / 3600000);
+let m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60;
+let s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60;
+return [h, m, s].map((v) => v.toString().padStart(2, 0)).join(':');
+}
+let settingstatus = 0
+if (new Date() * 1 - settingstatus > 1000) {
+let _uptime = process.uptime() * 1000
+let uptime = clockString(_uptime)
+await client.setStatus(`Active during ${uptime}`).catch((_) => _)
+settingstatus = new Date() * 1
+}
 colors = ['red','white','black','blue','yellow','green']
 const isMedia = (type === 'imageMessage' || type === 'videoMessage')
 const isQuotedImage = type === 'extendedTextMessage' && content.includes('imageMessage')
@@ -351,9 +354,15 @@ prep = await client.prepareMessageFromContent(from,{buttonsMessage},{quoted: mek
 client.relayWAMessage(prep)
 break
 case 'menu2':
-teks =`
+let ownerBot = `6282189387018@s.whatsapp.net`
+let totalchet = await client.chats.all()
+reply(`
 Hi @${sender.split('@')[0]}
 
+• *TOTAL CHATS*: _${totalchet.length}_
+• *HIT TODAY*: _${hit_today.length}_
+• *RUNTIME*: _${runtime(process.uptime())}_
+• *OWNER*: _@${ownerBot.split('@')[0]}_
 
 「 *OWNER* 」
 • _${prefix}setprefix_
@@ -361,9 +370,13 @@ Hi @${sender.split('@')[0]}
 • _${prefix}addcmd_
 • _${prefix}delcmd_
 • _${prefix}listcmd_
+• _${prefix}ping_
+• _${prefix}owner_
 
 「 *OTHER* 」
 • _${prefix}brainly_
+• _${prefix}mediafire_
+• _${prefix}play_
 
 「 *PHOTOXY* 」
 • _${prefix}manga-naruto_
@@ -380,12 +393,8 @@ Hi @${sender.split('@')[0]}
 • _${prefix}coffee-cup_
 • _${prefix}wood-hearth_
 
-
-📓:\nNOT ALL FEATURES WORK\nTHERE IS AN ERROR
-`
-let tod = fs.readFileSync('./src/vinz.jpg')
-let ownerBot = `6282189387018@s.whatsapp.net`
-client.sendMessage(from, { contentText: teks, footerText: `VINZBOT BY @${ownerBot.split('@')[0]}`, buttons: [{ buttonId: `${prefix}owner`, buttonText: { displayText: 'OWNER' }, type: 1 }], headerType: 'LOCATION', locationMessage: { degreesLatitude: '', degreesLongitude: '', jpegThumbnail: tod, contextInfo: {mentionedJid: [sender]}}}, 'buttonsMessage')
+📓: NOT ALL FEATURES WORK\nTHERE IS AN ERROR
+`)
 break
 case 'setprefix':
 if (!isOwner) return reply('Khusus Owner')
@@ -532,17 +541,68 @@ const serialUser = createSerial(20)
 veri = sender
 if (isGroup) {
 addRegisteredUser(sender, namaUser, time, serialUser)
-hasil = `「 *VERIFY* 」\n\n*SERIAL* : *${serialUser}*\n*NAME* : *${namaUser}*\n*TIME* : *${time}*\n*NUMBER* : *${sender.split("@")[0]}*`
+hasil = `「 *VERIFY* 」\n\n*SERIAL* : *${serialUser}*\n*NAME* : *${namaUser}*\n*TIME* : *${time}*\n*NUMBER* : *${sender.split('@')[0]}*`
 reply(hasil)
 console.log(color('[REGISTER]'), color(time, 'yellow'), 'NAME:', color(namaUser, 'cyan'), 'SERIAL:', color(serialUser, 'cyan'), 'in', color(sender || groupName))
 } else {
 addRegisteredUser(sender, namaUser, time, serialUser)
-hasil = `「 *VERIFY* 」\n\n*SERIAL* : *${serialUser}*\n*NAME* : *${namaUser}*\n*TIME* : *${time}*\n*NUMBER* : *${sender.split("@")[0]}*`
+hasil = `「 *VERIFY* 」\n\n*SERIAL* : *${serialUser}*\n*NAME* : *${namaUser}*\n*TIME* : *${time}*\n*NUMBER* : *${sender.split('@')[0]}*`
 reply(hasil)
 console.log(color('[REGISTER]'), color(time, 'yellow'), 'NAME:', color(namaUser, 'cyan'), 'SERIAL:', color(serialUser, 'cyan'))
 }
 tm = `verifikasi selesai silahkan ketik ${prefix}Menu untuk menampilkan list menu`
 reply(tm)
+break
+case 'mediafire':
+if (!isRegister) return reply(`Kamu Belum Verify Ketik ${prefix}verify`)
+if (args.length < 1) return reply('Link Nya Mana? ')
+if(!isUrl(args[0]) && !args[0].includes('mediafire')) return reply(mess.error.Iv)
+reply(mess.wait)
+teks = args.join(' ')
+res = await mediafireDl(teks)
+result = `Media Fire Downloader
+
+*Nama :* ${res[0].nama}
+*Ukuran :* ${res[0].size}
+*Link :* ${res[0].link}
+
+_*Tunggu Proses Mengirim Media......*_`
+reply(result)
+sendFileFromUrl(res[0].link, document, {mimetype: res[0].mime, filename: res[0].nama, quoted: ftext})
+break
+case 'ping':
+let totalchat = await client.chats.all()
+let i = []
+let giid = []
+for (let mem of totalchat){
+i.push(mem.jid)
+}
+for (let id of i){
+if (id && id.includes('g.us')){
+giid.push(id)
+}
+}
+let timestampi = speed()
+let latensii = speed() - timestampi
+const { wa_version, mcc, mnc, os_version, device_manufacturer, device_model } = client.user.phone
+reply (`「 *STATUS BOT* 」\n\n• WA VERSION: ${wa_version}\n• MCC: ${mcc}\n• MNC: ${mnc}\n• OS VERSION: ${os_version}\n• DEVICE MANUFACTURER: ${device_manufacturer}\n• MODEL: ${device_model}\n• RUNTIME: ${runtime(process.uptime())}\n\n「 *STATUS CHAT* 」\n\n• GROUP CHATS: ${giid.length}\n• PERSONAL CHATS: ${totalchat.length - giid.length}\n• TOTAL CHATS: ${totalchat.length}\n• USE RAM: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB / ${Math.round(require('os').totalmem / 1024 / 1024)}MB\n\n*SPEED* > ${latensii.toFixed(4)} Second!`)
+break
+case 'owner':
+case 'creator':
+const owner1 = 'BEGIN:VCARD\n'
+ + 'VERSION:3.0\n' 
+ + 'FN: Vinz\n'
+ + `ORG: Owner Vinz ;\n`
+ + `TEL;type=CELL;type=VOICE;waid=6282189387018:62 821-8938-7018\n`
+ + 'END:VCARD' 
+const bot1 = 'BEGIN:VCARD\n'
+ + 'VERSION:3.0\n' 
+ + 'FN: VinzBot\n'
+ + `ORG: Bot ;\n`
+ + `TEL;type=CELL;type=VOICE;waid=62821893870181:62 821-8938-70181\n`
+ + 'END:VCARD' 
+client.sendMessage(from, {displayname: 'Jeff', vcard: owner1}, MessageType.contact, { quoted: mek})
+client.sendMessage(from, {displayname: 'Jeff', vcard: bot1}, MessageType.contact, { quoted: mek})
 break
 default:
 }
